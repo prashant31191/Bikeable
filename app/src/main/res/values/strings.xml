@@ -20,4 +20,7 @@
     <string name="curr_location_secondary_text">Your Current Location</string>
     <string name="action_uphill">Significant Uphills</string>
     <string name="history_val_sep">.@.@</string>
+    <string name="api_key_android">AIzaSyDI8rf_R2b86jpKk0cGKs6u72hWScmSLqA</string>
+    <string name="api_key_server">AIzaSyDI8rf_R2b86jpKk0cGKs6u72hWScmSLqA</string>
+    <string name="skobbler_key">107d6d26f54ef6f14dd8b48c74c0e6bf93268ff228f5aa84495d9cc9c52962d9</string>
 </resources>
