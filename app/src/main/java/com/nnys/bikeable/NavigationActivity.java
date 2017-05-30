@@ -3,6 +3,7 @@ package com.nnys.bikeable;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
@@ -18,6 +19,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.appinfosdk.utils.AppInfoListener;
+import com.appinfosdk.utils.ErrorModel;
+import com.appinfosdk.utils.MyLocationService;
+import com.appinfosdk.utils.SucessModel;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.skobbler.ngx.SKCoordinate;
@@ -61,6 +66,7 @@ import com.skobbler.ngx.versioning.SKVersioningManager;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Formatter;
 import java.util.List;
 import java.util.Locale;
 
@@ -72,14 +78,15 @@ import java.util.Locale;
  * http://developer.skobbler.com/support#download
  */
 
-public class NavigationActivity extends AppCompatActivity implements SKPrepareMapTextureListener, SKMapUpdateListener, SKMapSurfaceListener, SKRouteListener, SKNavigationListener, SKCurrentPositionListener {
+public class NavigationActivity extends AppCompatActivity implements SKPrepareMapTextureListener, SKMapUpdateListener, SKMapSurfaceListener, SKRouteListener, SKNavigationListener, SKCurrentPositionListener, AppInfoListener {
 
     /*
      * layout related fields
      */
 
+
     private Button returnButton;
-    private TextView waitForLocationTextBox, nextAdviceTextBox;
+    private TextView waitForLocationTextBox, nextAdviceTextBox,tvKMPerHr;
     private ImageView nextAdviceImageView;
 
     /**
@@ -129,6 +136,7 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
     // received or not
     private Handler gpsPositionsDelayChecker;
 
+    String TAG = "=NavigationActivity=";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -159,6 +167,10 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
         final SKPrepareMapTextureThread prepThread = new SKPrepareMapTextureThread(
                 this, mapResDirPath, "SKMaps.zip", this);
         prepThread.start();
+
+        Intent myIntent = new Intent(NavigationActivity.this, MyLocationService.class);
+        startService(myIntent);
+
     }
 
     @Override
@@ -219,6 +231,7 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
 
         waitForLocationTextBox = (TextView) findViewById(R.id.wait_for_location_message);
         nextAdviceTextBox = (TextView) findViewById(R.id.next_advice);
+        tvKMPerHr = (TextView) findViewById(R.id.tvKMPerHr);
 
         mapHolder = (SKMapViewHolder) findViewById(R.id.map_surface_holder);
         mapHolder.setMapSurfaceListener(this);
@@ -513,11 +526,15 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
             showAlertDialog();
         }
         else {
+
             exitActivity();
         }
     }
 
     void exitActivity(){
+        Intent myIntent = new Intent(NavigationActivity.this, MyLocationService.class);
+        stopService(myIntent);
+
         if (textToSpeechEngine != null){ textToSpeechEngine.shutdown(); }
         finish();
     }
@@ -803,4 +820,77 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
     public void onNoNewVersionDetected() {
 
     }
+
+
+
+
+    @Override
+    public void onSuccess(SucessModel sucessModel) {
+        try{
+            // com.trek.App.showLog("==onSuccess==="+sucessModel.getStatusCode());
+            if(sucessModel !=null && sucessModel.getLocationLatLong() !=null) {
+
+                //   com.trek.App.showLog("====location=====getLongitude==="+location.getLongitude());
+                //   com.trek.App.showLog("====location=====getLatitude==="+location.getLatitude());
+                CLocation myLocation = new CLocation(sucessModel.getLocationLatLong());
+                updateSpeed(myLocation);
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+    @Override
+    public void onFailure(ErrorModel errorModel) {
+        //  com.trek.App.showLog("==onFailure==="+errorModel.getStatusCode());
+    }
+
+
+
+
+    private void updateSpeed(CLocation location) {
+        // TODO Auto-generated method stub
+
+        try {
+            // speed_counter = speed_counter + 1;
+            //com.trek.App.showLog("====updateSpeed=====speed_counter===" + speed_counter);
+            float mCurrentSpeed = 0;
+
+            if (location != null) {
+                // location.setUseMetricunits(this.useMetricUnits());
+                location.setUseMetricunits(true);
+                mCurrentSpeed = location.getSpeed();
+                showLog(TAG + "==mCurrentSpeed==> " + mCurrentSpeed);
+            }
+
+
+
+            //if (mCurrentSpeed > 0)
+            {
+                Formatter fmt = new Formatter(new StringBuilder());
+                fmt.format(Locale.US, "%2.1f", mCurrentSpeed);
+                String strCurrentSpeed = fmt.toString();
+                strCurrentSpeed = strCurrentSpeed.replace(' ', '0');
+                // strLog = strLog + "\n" + "+++ speed = "+strCurrentSpeed + " " + strUnits+" = +++";
+                showLog("=======updateSpeed====" + strCurrentSpeed + " " + "km/h");
+                if (tvKMPerHr != null) {
+                    tvKMPerHr.setText(strCurrentSpeed);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+            if (tvKMPerHr != null) {
+                tvKMPerHr.setText("" + e.getMessage());
+            }
+        }
+
+
+    }
+    public static void showLog(String strMessage) {
+        Log.v("==App==", "--strMessage--" + strMessage);
+    }
+
 }

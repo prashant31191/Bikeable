@@ -39,6 +39,17 @@
             style="@android:style/TextAppearance.Large"
             android:text="" />
 
+        <TextView
+            android:id="@+id/tvKMPerHr"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="15dp"
+            android:background="#9111"
+            android:textColor="#ddd"
+            android:textSize="28dp"
+            android:text="20 km/hr"
+            />
+
         <ImageView
             android:id="@+id/next_advice_image"
             android:layout_width="wrap_content"

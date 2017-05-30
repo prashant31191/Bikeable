@@ -4,7 +4,6 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Bikeable.iml" filepath="$PROJECT_DIR$/Bikeable.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://E:\Prashant\Github_Demo\Bikeable\app\app.iml" filepath="E:\Prashant\Github_Demo\Bikeable\app\app.iml" />
     </modules>
   </component>
 </project>
