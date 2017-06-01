@@ -20,6 +20,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.appinfosdk.utils.AppInfoListener;
+import com.appinfosdk.utils.CommonObjects;
 import com.appinfosdk.utils.ErrorModel;
 import com.appinfosdk.utils.MyLocationService;
 import com.appinfosdk.utils.SucessModel;
@@ -85,7 +86,7 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
      */
 
 
-    private Button returnButton;
+    private Button returnButton,btnCustomeRoute,btnCustomeRouteNavigation;
     private TextView waitForLocationTextBox, nextAdviceTextBox,tvKMPerHr;
     private ImageView nextAdviceImageView;
 
@@ -143,7 +144,7 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
 
         // get the route info
         Bundle bundle = getIntent().getExtras();
-       routeLatLngs = getIntent().getParcelableArrayListExtra("routeLatLngs");
+        routeLatLngs = getIntent().getParcelableArrayListExtra("routeLatLngs");
         if (routeLatLngs == null){
             Log.i("INFO:", "route is null");
         }
@@ -184,6 +185,7 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
     @Override
     protected void onResume() {
         super.onResume();
+        CommonObjects.setActivityCommon(this);
         if (mapHolder != null){
             mapHolder.onResume();
         }
@@ -215,9 +217,12 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
 
         setContentView(R.layout.navigation_layout);
 
-        setContentView(R.layout.navigation_layout);
+        // setContentView(R.layout.navigation_layout);
 
         returnButton = (Button) findViewById(R.id.back_to_res_btn);
+        btnCustomeRoute = (Button) findViewById(R.id.btnCustomeRoute);
+        btnCustomeRouteNavigation = (Button) findViewById(R.id.btnCustomeRouteNavigation);
+
         returnButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -228,6 +233,20 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
                 finish();
             }
         });
+        btnCustomeRoute.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                calculateCustomeRoute();
+            }
+        });
+        btnCustomeRouteNavigation.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                navigationCustomeRoute();
+            }
+        });
+
+
 
         waitForLocationTextBox = (TextView) findViewById(R.id.wait_for_location_message);
         nextAdviceTextBox = (TextView) findViewById(R.id.next_advice);
@@ -236,6 +255,61 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
         mapHolder = (SKMapViewHolder) findViewById(R.id.map_surface_holder);
         mapHolder.setMapSurfaceListener(this);
         mapHolder.onResume();
+    }
+    private void calculateCustomeRoute()
+    {
+        showLog("==click --calculateCustomeRoute--===");
+        // List of points
+        List pointsList = new ArrayList<SKPosition>();
+   /*
+        pointsList.add(new SKPosition(23.609239, 46.767936));
+        pointsList.add(new SKPosition(23.609149, 46.769281));
+        pointsList.add(new SKPosition(23.605704, 46.768879));
+        */
+/*
+1
+        pointsList.add(new SKPosition(72.503293,23.002711));
+        pointsList.add(new SKPosition(72.505982,23.006714));
+        pointsList.add(new SKPosition(72.506741,23.010186));
+        pointsList.add(new SKPosition(72.508720,23.011984));
+        pointsList.add(new SKPosition(72.512104,23.012319));
+
+*/
+      /*
+        2
+
+        pointsList.add(new SKPosition(72.503293,23.002711));
+        pointsList.add(new SKPosition(72.503237,23.006317));
+        pointsList.add(new SKPosition(72.501810,23.008115));
+        pointsList.add(new SKPosition(72.502972,23.011763));
+        pointsList.add(new SKPosition(72.511923,23.012325));
+        pointsList.add(new SKPosition(72.512104,23.012319));
+*/
+
+
+        pointsList.add(new SKPosition(72.503293,23.002711));
+        pointsList.add(new SKPosition(72.503794,23.003554));
+        pointsList.add(new SKPosition(72.507945,23.008171));
+        pointsList.add(new SKPosition(72.511165,23.009427));
+      //11  pointsList.add(new SKPosition(72.509886,23.011938));
+        pointsList.add(new SKPosition(72.512104,23.012319));
+
+
+// Set the route listener
+        SKRouteManager.getInstance().setRouteListener(this);
+        SKRouteSettings routeSettings = new SKRouteSettings();
+//set route mode
+        routeSettings.setRouteMode(SKRouteSettings.SKRouteMode.CAR_FASTEST);
+        SKRouteManager.getInstance().calculateRouteWithPoints(pointsList, routeSettings);
+
+        SKPosition skPositionStarting= new SKPosition(23.002711, 72.503293);
+        SKPosition skPositionEnding= new SKPosition(72.512104,23.012319);
+        addMarkerOnMap(skPositionStarting.getCoordinate(),111);
+        addMarkerOnMap(skPositionEnding.getCoordinate(),222);
+    }
+    private void navigationCustomeRoute()
+    {
+        showLog("==click --navigationCustomeRoute--===");
     }
 
     @Override
@@ -306,7 +380,8 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
         Log.i("INFO:", "inside all routes completed");
         SKNavigationSettings navigationSettings = new SKNavigationSettings();
         // set the desired navigation settings
-        navigationSettings.setNavigationType(SKNavigationSettings.SKNavigationType.REAL);
+        navigationSettings.setNavigationType(SKNavigationSettings.SKNavigationType.SIMULATION);
+        //navigationSettings.setNavigationType(SKNavigationSettings.SKNavigationType.REAL);
         navigationSettings.setPositionerVerticalAlignment(-0.25f);
         navigationSettings.setShowRealGPSPositions(true);
         navigationSettings.setEnableReferenceStreetNames(false);
@@ -425,8 +500,7 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
             annotation.setAnnotationType(SKAnnotation.SK_ANNOTATION_TYPE_GREEN);
             annotation.setLocation(MapUtils.getSKCoordinateFromGms(stationLatLng));
             annotation.setUniqueID(i);
-            mapView.addAnnotation(annotation,
-                    SKAnimationSettings.ANIMATION_NONE);
+            mapView.addAnnotation(annotation,SKAnimationSettings.ANIMATION_NONE);
             i++;
         }
     }
@@ -478,6 +552,7 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
         skToolsNavigatioEnded = true;
         nextAdviceImageView.setVisibility(View.GONE);
         nextAdviceTextBox.setText("Destination reached!");
+        Toast.makeText(NavigationActivity.this, "Destination reached...!",Toast.LENGTH_SHORT).show();
         nextAdviceTextBox.setGravity(Gravity.CENTER_HORIZONTAL);
         returnButton.setVisibility(View.VISIBLE);
         navigationStop();
@@ -511,12 +586,30 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
     }
 
     private void showDestinationOnMap(SKCoordinate destinationPoint){
-        SKAnnotation annotation = new SKAnnotation(SKAnnotation
-                .SK_ANNOTATION_TYPE_DESTINATION_FLAG);
+        SKAnnotation annotation = new SKAnnotation(SKAnnotation.SK_ANNOTATION_TYPE_DESTINATION_FLAG);
         annotation.setAnnotationType(SKAnnotation.SK_ANNOTATION_TYPE_RED);
         annotation.setLocation(destinationPoint);
+        annotation.setUniqueID(555);
         mapView.addAnnotation(annotation,
                 SKAnimationSettings.ANIMATION_NONE);
+    }
+
+
+    private void addMarkerOnMap(SKCoordinate destinationPoint,int ids){
+        SKAnnotation annotation = new SKAnnotation(SKAnnotation.SK_ANNOTATION_TYPE_DESTINATION_FLAG);
+        if(ids == 111)
+        {
+            annotation.setAnnotationType(SKAnnotation.SK_ANNOTATION_TYPE_GREEN);
+        }
+        else
+        {
+            annotation.setAnnotationType(SKAnnotation.SK_ANNOTATION_TYPE_RED);
+        }
+
+        annotation.setLocation(destinationPoint);
+        annotation.setUniqueID(ids);
+        mapView.addAnnotation(annotation,SKAnimationSettings.ANIMATION_NONE);
+        mapView.deleteAnnotation(555);
     }
 
     @Override
@@ -582,8 +675,7 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
     @Override
     public void onReRoutingStarted() {
 //        textToSpeechEngine.speak("Off route, stopping navigation!", TextToSpeech.QUEUE_ADD, null);
-//        Toast.makeText(NavigationActivity.this, "Off route, stopping navigation!",
-//                Toast.LENGTH_SHORT).show();
+        Toast.makeText(NavigationActivity.this, "Re Routing navigation!",Toast.LENGTH_SHORT).show();
 //        navigationStop();
     }
 
@@ -875,7 +967,7 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
                 // strLog = strLog + "\n" + "+++ speed = "+strCurrentSpeed + " " + strUnits+" = +++";
                 showLog("=======updateSpeed====" + strCurrentSpeed + " " + "km/h");
                 if (tvKMPerHr != null) {
-                    tvKMPerHr.setText(strCurrentSpeed);
+                    tvKMPerHr.setText(strCurrentSpeed + "km/h");
                 }
             }
         }
